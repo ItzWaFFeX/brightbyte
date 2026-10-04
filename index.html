@@ -4418,24 +4418,24 @@ print("Plan first, code second.")`,
     }
     const getCourse = id => allCourses().find(c => c.id === id);
 
-    /* ---------- auth (Supabase when cloud mode is on) ---------- */
     async function signUp(name, email, pass, q, a) {
-  if (cloudMode) {
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name, sec_q: q, sec_a: a } } });
-    if (error) {
-      if (/already registered|already exists/i.test(error.message)) return 'That email already has an account — try logging in.';
-      return error.message;
-    }
-    if (data.session) {
-      DB.session = data.user.id;
-      const nu = makeUser({ id: data.user.id, name, email, pass, secQ: q, secA: a }); DB.users.push(nu); save();
-      return null;
-    }
-    return 'PENDING_CONFIRM';
-  }
-}
+      if (cloudMode) {
+        const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name, sec_q: q, sec_a: a } } });
+        if (error) {
+          if (/already registered|already exists/i.test(error.message)) return 'That email already has an account — try logging in.';
+          return error.message;
+        }
+        if (data.session) {
+          DB.session = data.user.id;
+          const nu = makeUser({ id: data.user.id, name, email, pass, secQ: q, secA: a }); DB.users.push(nu); save();
+          return null;
+        }
+        return 'PENDING_CONFIRM';
+      }
       if (DB.users.some(u => u.email.toLowerCase() === email.toLowerCase())) return 'That email already has an account — try logging in.';
-      const u = makeUser({ name, email, pass: hsh(pass) }); DB.users.push(u); DB.session = u.id; save(); return null;
+      const u = makeUser({ name, email, pass: hsh(pass), secQ: q, secA: a }); DB.users.push(u); DB.session = u.id; save(); return null;
+    }
+
     async function login(email, pass) {
       if (cloudMode) {
         const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
